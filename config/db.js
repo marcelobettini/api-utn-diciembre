@@ -1,4 +1,7 @@
 //Mongo DB Atlas cloud connection
+
+require("dotenv").config();
+
 const mongoose = require("mongoose");
 
 //A apartir de versión 6 de Mongoose no es necesario.

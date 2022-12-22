@@ -1,24 +1,16 @@
-require("dotenv").config();
-require("./config/db");
-const express = require('express');
+const express = require("express");
+require("./config/db.js");
 
 const PORT = process.env.PORT || 3030;
 const server = express();
 
-server.get('/api/teams', (req, res) => {
-  res.send("accedemos a los equipos");
-});
-
-server.post('/api/teams', (req, res) => {
-  res.send("Agregamos un equipo");
-});
-
-server.delete('/api/teams/:id', (req, res) => {
-  res.send("Borramos el equipo " + req.params.id);
-});
-
-
+//express core middlewares
 server.use(express.static('public'));
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
+
+//users routing
+server.use("/api/users", require("./users/usersRt"));
 
 server.listen(PORT, (err) => {
 
