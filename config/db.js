@@ -1,6 +1,6 @@
 //Mongo DB Atlas cloud connection
 
-require("dotenv").config();
+
 
 const mongoose = require("mongoose");
 
