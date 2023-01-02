@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
     const ext = file.originalname.split(".").pop();
     const filename = `usrPic_${Date.now()}.${ext}`;
     callback(null, filename);
-  }
+  },
 });
 
 const uploadPic = multer({ storage });

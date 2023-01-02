@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3030;
 const server = express();
 
 //express core middlewares
-server.use(express.static('public'));
+server.use(express.static("public"));
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
@@ -18,13 +18,22 @@ server.use(cors());
 server.use("/api/users", require("./users/usersRt"));
 
 server.listen(PORT, (err) => {
-
-  !err ?
-    console.log(`Server up: http://localhost:${PORT}`)
-    :
-    console.log(`Server down du to: ${err}`);
-
+  !err
+    ? console.log(`Server up: http://localhost:${PORT}`)
+    : console.log(`Server down du to: ${err}`);
 });
 
-//TODO: error handling
+//404
+server.use((req, res, next) => {
+  let error = new Error();
+  error.message = "Resource Not Found";
+  error.status = 404;
+  next(error);
+});
 
+//general error handler
+server.use((error, req, res, next) => {
+  res
+    .status(error.status)
+    .json({ status: error.status, message: error.message });
+});
