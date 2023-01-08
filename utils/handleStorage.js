@@ -1,15 +1,30 @@
 const multer = require("multer");
 const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
+  destination: (req, file, cb) => {
     const pathStorage = `${__dirname}/../public/storage`;
-    callback(null, pathStorage);
+    cb(null, pathStorage);
   },
-  filename: (req, file, callback) => {
+  filename: (req, file, cb) => {
     const ext = file.originalname.split(".").pop();
     const filename = `usrPic_${Date.now()}.${ext}`;
-    callback(null, filename);
+    cb(null, filename);
   },
 });
 
-const uploadPic = multer({ storage });
+const uploadPic = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype == "image/png" ||
+      file.mimetype == "image/jpg" ||
+      file.mimetype == "image/jpeg" ||
+      !file
+    ) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+      return cb(new Error("Warning: .png, .jpg and .jpeg format allowed!"));
+    }
+  },
+});
 module.exports = uploadPic;
