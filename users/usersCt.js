@@ -2,6 +2,7 @@ const bc = require("../utils/handlePassword");
 const User = require("./usersMd");
 const public_url = process.env.public_url;
 const jwt = require("../utils/handleJWT");
+const transporter = require("../utils/handleMailer");
 
 //get all users //TODO: improve this mess
 const getAllUsers = (req, res, next) => {
@@ -85,11 +86,76 @@ const loginUser = async (req, res, next) => {
     userData: userForToken,
   });
 };
+//FORGOT PASSWORD (Este servicio enviará un email con un link de recuperación de contraseña el email del usuario regustrado en la base de datos. Desde ese link, que incluirá un token de seguridad, podremos ir al formulario de recuperación y este vinculará con el procedimiento de restauración de contraseña -> esta persistirá en la base de datos (en el documento del usuario en cuestión)
+const forgot = async (req, res, next) => {
+  //existe el mail?
+  let error = new Error("No user with than email");
+  const user = await User.find().where({ email: req.body.email });
+  if (!user.length) {
+    error.status = 404;
+    return next(error);
+  }
+  //si existe el email, generamois el token de seguridad y el link de restauración de contraseña que enviaremos al usuario
+  const userForToken = {
+    id: user[0].id,
+    name: user[0].fullName,
+    email: user[0].email,
+  };
+  const token = await jwt.tokenSign(userForToken, "15m");
+  const link = `${process.env.public_url}/api/users/reset/${token}`;
 
+  //creamos el cuerpo del mail, lo enviamos al usuario e indicamos esto en la response
+  const mailDetails = {
+    from: "Tech-Support@mydomain.com",
+    to: userForToken.email,
+    subject: "Password recovery magic link",
+    html: `<h2>Password Recovery Service</h2>
+  <p>To reset your password, please click the link and type in a new password</p>
+  <a href="${link}">click to reset password</a>
+  `,
+  };
+
+  transporter.sendMail(mailDetails, (error, data) => {
+    if (error) {
+      next(error);
+    } else {
+      res.status(200).json({
+        message: `Hi ${userForToken.name}, we've sent an email with instructions to ${userForToken.email}`,
+      });
+    }
+  });
+};
+const reset = async (req, res, next) => {
+  const { token } = req.params;
+  const tokenStatus = await jwt.tokenVerify(token);
+  if (tokenStatus instanceof Error) {
+    return next(tokenStatus);
+  }
+  res.render("reset", { token, tokenStatus });
+};
+const saveNewPass = async (req, res, next) => {
+  const { token } = req.params;
+  const tokenStatus = await jwt.tokenVerify(token);
+  if (tokenStatus instanceof Error) return next(tokenStatus);
+  const newPassword = await bc.hashPassword(req.body.password_1);
+  try {
+    const updatedUser = await User.findByIdAndUpdate(tokenStatus.id, {
+      password: newPassword,
+    });
+    res
+      .status(200)
+      .json({ message: `Password changed for user ${tokenStatus.name}` });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   getAllUsers,
   deleteUserById,
   createUser,
   updateUser,
   loginUser,
+  forgot,
+  reset,
+  saveNewPass,
 };
