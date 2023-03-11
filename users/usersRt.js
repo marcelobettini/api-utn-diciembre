@@ -13,7 +13,7 @@ router.put("/:id", userCt.updateUser);
 router.delete("/:id", userCt.deleteUserById);
 router.post("/login", userCt.loginUser);
 //SEND REQUEST FOR PASSWORD RESETTING
-router.get("/forgot-password", userCt.forgot);
+router.post("/forgot-password", userCt.forgot);
 //MAGIC LINK REDIRECTS TO RESET FORM
 router.get("/reset/:token", userCt.reset);
 //process reset form

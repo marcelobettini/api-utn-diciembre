@@ -95,7 +95,7 @@ const forgot = async (req, res, next) => {
     error.status = 404;
     return next(error);
   }
-  //si existe el email, generamois el token de seguridad y el link de restauración de contraseña que enviaremos al usuario
+  //si existe el email, generamos el token de seguridad y el link de restauración de contraseña que enviaremos al usuario
   const userForToken = {
     id: user[0].id,
     name: user[0].fullName,
